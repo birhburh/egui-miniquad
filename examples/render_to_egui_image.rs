@@ -171,6 +171,7 @@ impl mq::EventHandler for Stage {
         // create egui TextureId from Miniquad GL texture Id
         let raw_id = match unsafe { self.mq_ctx.texture_raw_id(mq_texture) } {
             mq::RawId::OpenGl(id) => id as u64,
+            mq::RawId::Metal(_) => unimplemented!(),
         };
         let egui_texture_id = egui::TextureId::User(raw_id);
 
