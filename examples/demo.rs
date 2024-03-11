@@ -12,7 +12,10 @@ impl Stage {
         let mut mq_ctx = mq::window::new_rendering_backend();
 
         let egui_mq = egui_mq::EguiMq::new(&mut *mq_ctx);
+
+        #[cfg(target_os = "macos")]
         load_system_font(egui_mq.egui_ctx());
+
         Self {
             egui_mq,
             prev_egui_zoom_factor: 1.0,
@@ -21,7 +24,7 @@ impl Stage {
         }
     }
 
-    fn content(ui: &mut egui::Ui, egui_ctx: &Context, dpi_scale: f32, zoom_factor: &mut f32) {
+    fn content(ui: &mut egui::Ui, egui_ctx: &egui::Context, dpi_scale: f32, zoom_factor: &mut f32) {
         egui::widgets::global_dark_light_mode_buttons(ui);
 
         ui.group(|ui| {
@@ -58,17 +61,23 @@ impl Stage {
     }
 }
 
+#[cfg(target_os = "macos")]
 use std::fs::read;
 
+#[cfg(target_os = "macos")]
 use egui::epaint::FontFamily;
-use egui::{Context, FontData, FontDefinitions};
+#[cfg(target_os = "macos")]
+use egui::{FontData, FontDefinitions};
+#[cfg(target_os = "macos")]
 use font_kit::{
     family_name::FamilyName, handle::Handle, properties::Properties, source::SystemSource,
 };
 
+#[cfg(target_os = "macos")]
 const FONT_SYSTEM_SANS_SERIF: &'static str = "System Sans Serif";
 
-fn load_system_font(ctx: &Context) {
+#[cfg(target_os = "macos")]
+fn load_system_font(ctx: &egui::Context) {
     let mut fonts = FontDefinitions::default();
 
     let handle = SystemSource::new()
