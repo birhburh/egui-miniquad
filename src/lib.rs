@@ -197,7 +197,9 @@ impl EguiMq {
         if self.shapes.is_some() {
             eprintln!("Egui contents not drawn. You need to call `draw` after calling `run`");
         }
-        self.shapes = Some(shapes);
+        if self.egui_ctx.has_requested_repaint() {
+            self.shapes = Some(shapes);
+        }
         self.pixels_per_point = pixels_per_point;
         self.textures_delta.append(textures_delta);
 

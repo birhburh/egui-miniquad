@@ -21,8 +21,10 @@ bytemuck = "1.9"
 egui = { version = "0.25", features = ["bytemuck"] }
 # miniquad = { version = "=0.4.0" }
 # miniquad = { path="../miniquad_partial" }
+# miniquad = { path="../miniquad" }
 miniquad = { git = "https://github.com/birhburh/miniquad.git", branch = "less_fps" }
 quad-url = "0.1"
+font-kit = "=0.12.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2.7", features = ["custom"] }
@@ -33,12 +35,7 @@ quad-rand = "0.2.1"
 copypasta = "0.8.1"
 
 [dev-dependencies]
-egui_demo_lib = { version = "0.25", default-features = false }
 glam = "0.22.0"
 
 [profile.release]
 opt-level = 2 # fast and small wasm
-
-# native:
-[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-tracing-subscriber = "0.3"
