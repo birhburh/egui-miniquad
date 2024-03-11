@@ -29,12 +29,7 @@ impl Stage {
 impl mq::EventHandler for Stage {
     fn update(&mut self) {}
 
-    fn draw(&mut self) {
-        self.mq_ctx.clear(Some((1., 1., 1., 1.)), None, None);
-        self.mq_ctx
-            .begin_default_pass(mq::PassAction::clear_color(0.0, 0.0, 0.0, 1.0));
-        self.mq_ctx.end_render_pass();
-
+    fn draw(&mut self) -> bool {
         let dpi_scale = mq::window::dpi_scale();
 
         // Run the UI code:
@@ -103,13 +98,21 @@ impl mq::EventHandler for Stage {
             });
         });
 
-        // Draw things behind egui here
+        let repaint = self.egui_mq.egui_ctx().has_requested_repaint();
+        if repaint {
+            // Draw things behind egui here
+            self.mq_ctx.clear(Some((1., 1., 1., 1.)), None, None);
+            self.mq_ctx
+                .begin_default_pass(mq::PassAction::clear_color(0.0, 0.0, 0.0, 1.0));
+            self.mq_ctx.end_render_pass();
 
-        self.egui_mq.draw(&mut *self.mq_ctx);
+            self.egui_mq.draw(&mut *self.mq_ctx);
 
-        // Draw things in front of egui here
+            // Draw things in front of egui here
 
-        self.mq_ctx.commit_frame();
+            self.mq_ctx.commit_frame();
+        }
+        repaint
     }
 
     fn mouse_motion_event(&mut self, x: f32, y: f32) {
