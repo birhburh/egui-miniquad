@@ -106,7 +106,6 @@ fn load_system_font(ctx: &egui::Context) {
 
 impl mq::EventHandler for Stage {
     fn update(&mut self) -> bool {
-        println!("UPDATE");
         let dpi_scale = mq::window::dpi_scale();
 
         let zoom_factor = &mut self.zoom_factor;
@@ -143,7 +142,6 @@ impl mq::EventHandler for Stage {
     }
 
     fn draw(&mut self) {
-        println!("DRAW");
         // Draw things behind egui here
         self.mq_ctx.clear(Some((1., 1., 1., 1.)), None, None);
         self.mq_ctx
@@ -184,6 +182,11 @@ impl mq::EventHandler for Stage {
     fn key_up_event(&mut self, keycode: mq::KeyCode, keymods: mq::KeyMods) {
         self.egui_mq.key_up_event(keycode, keymods);
     }
+
+    fn resize_event(&mut self, _width: f32, _height: f32) {
+        self.egui_mq.egui_ctx().request_repaint();
+    }
+
 }
 
 fn main() {
