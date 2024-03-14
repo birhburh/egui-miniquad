@@ -168,6 +168,7 @@ impl EguiMq {
     pub fn run(
         &mut self,
         mq_ctx: &mut dyn mq::RenderingBackend,
+        skipping: bool,
         run_ui: impl FnOnce(&mut dyn mq::RenderingBackend, &egui::Context),
     ) {
         input::on_frame_start(&mut self.egui_input, &self.egui_ctx);
@@ -194,10 +195,10 @@ impl EguiMq {
             viewport_output: _viewport_output, // we only support one viewport
         } = full_output;
 
-        if self.shapes.is_some() {
+        if !skipping && self.shapes.is_some() {
             eprintln!("Egui contents not drawn. You need to call `draw` after calling `run`");
         }
-        if self.egui_ctx.has_requested_repaint() {
+        if !skipping && self.egui_ctx.has_requested_repaint() {
             self.shapes = Some(shapes);
         }
         self.pixels_per_point = pixels_per_point;
