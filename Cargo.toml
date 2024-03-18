@@ -19,7 +19,6 @@ include = ["../LICENSE-APACHE", "../LICENSE-MIT", "**/*.rs", "Cargo.toml"]
 [dependencies]
 bytemuck = "1.9"
 egui = { version = "0.25", features = ["bytemuck"] }
-egui_extras = { version = "0.25" }
 # miniquad = { version = "=0.4.0" }
 # miniquad = { path="../miniquad" }
 miniquad = { git = "https://github.com/birhburh/miniquad.git", branch = "less_fps" }
