@@ -19,6 +19,7 @@ include = ["../LICENSE-APACHE", "../LICENSE-MIT", "**/*.rs", "Cargo.toml"]
 [dependencies]
 bytemuck = "1.9"
 egui = { version = "0.25", features = ["bytemuck"] }
+# egui = { path="../egui/crates/egui", features = ["bytemuck"] }
 # miniquad = { version = "=0.4.0" }
 # miniquad = { path="../miniquad" }
 miniquad = { git = "https://github.com/birhburh/miniquad.git", branch = "less_fps" }
@@ -32,6 +33,7 @@ quad-rand = "0.2.1"
 [target.'cfg(target_os = "macos")'.dependencies]
 copypasta = "0.8.1"
 font-kit = "=0.12.0"
+eframe = { path="../egui/crates/eframe" }
 
 [dev-dependencies]
 glam = "0.22.0"

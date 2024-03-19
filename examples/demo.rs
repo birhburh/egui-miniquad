@@ -7,6 +7,7 @@ struct Stage {
     mq_ctx: Box<dyn mq::RenderingBackend>,
     content: Content,
     first: bool,
+    show_settings: bool,
 }
 
 impl Stage {
@@ -18,29 +19,56 @@ impl Stage {
         // #[cfg(target_os = "macos")]
         // load_system_font(egui_mq.egui_ctx());
 
+        egui_mq.egui_ctx().style_mut(|style| {
+            style.spacing.button_padding = egui::vec2(16.0, 16.0);
+            // ui.style_mut().spacing.slider_width = 200.0;
+            style.text_styles.insert(
+                egui::TextStyle::Button,
+                egui::FontId::new(48.0, egui::epaint::FontFamily::Proportional),
+            );
+            style.text_styles.insert(
+                egui::TextStyle::Body,
+                egui::FontId::new(28.0, egui::epaint::FontFamily::Proportional),
+            );
+        });
+
         Self {
             egui_mq,
             mq_ctx,
             content: Content {},
             first: true,
+            show_settings: false,
         }
     }
 }
 
 impl Content {
+    fn expanding_content(ui: &mut egui::Ui) {
+        let width = ui.available_width().clamp(20.0, 200.0);
+        let height = ui.available_height();
+        let (rect, _response) =
+            ui.allocate_exact_size(egui::vec2(width, height), egui::Sense::hover());
+        ui.painter().hline(
+            rect.x_range(),
+            rect.center().y,
+            (1.0, ui.visuals().text_color()),
+        );
+    }
+
     fn content(&mut self, ui: &mut egui::Ui) {
         egui::Frame::canvas(ui.style()).show(ui, |ui| {
             let desired_width = ui.available_width();
             let desired_height = ui.available_height();
             let desired_size = egui::vec2(desired_width, desired_height);
             let (_id, rect) = ui.allocate_space(desired_size);
+            let visuals = ui.ctx().style().visuals.clone();
 
             let painter = ui.painter();
             painter.rect(
-                rect.shrink(1.0),
-                10.0,
+                rect.expand(1.),
+                0.0,
                 ui.ctx().style().visuals.window_fill(),
-                egui::Stroke::new(0.5, egui::Color32::DARK_GRAY),
+                egui::Stroke::NONE,
             );
             painter.line_segment(
                 [
@@ -66,65 +94,10 @@ impl Content {
                 egui::Align2::LEFT_CENTER,
                 "This is some text",
                 egui::FontId::new(30.0, egui::FontFamily::Proportional),
-                egui::Color32::RED,
+                visuals.text_color(),
             );
         });
     }
-
-    fn expanding_content(ui: &mut egui::Ui) {
-        let width = ui.available_width().clamp(20.0, 200.0);
-        let height = ui.available_height();
-        let (rect, _response) =
-            ui.allocate_exact_size(egui::vec2(width, height), egui::Sense::hover());
-        ui.painter().hline(
-            rect.x_range(),
-            rect.center().y,
-            (1.0, ui.visuals().text_color()),
-        );
-    }
-}
-
-#[cfg(target_os = "macos")]
-use std::fs::read;
-
-#[cfg(target_os = "macos")]
-use egui::epaint::FontFamily;
-#[cfg(target_os = "macos")]
-use egui::{FontData, FontDefinitions};
-#[cfg(target_os = "macos")]
-use font_kit::{
-    family_name::FamilyName, handle::Handle, properties::Properties, source::SystemSource,
-};
-
-#[cfg(target_os = "macos")]
-const FONT_SYSTEM_SANS_SERIF: &'static str = "System Sans Serif";
-
-#[cfg(target_os = "macos")]
-fn load_system_font(ctx: &egui::Context) {
-    let mut fonts = FontDefinitions::default();
-
-    let handle = SystemSource::new()
-        .select_best_match(
-            &[FamilyName::Title("Helvetica".into()), FamilyName::SansSerif],
-            &Properties::new(),
-        )
-        .unwrap();
-
-    let buf: Vec<u8> = match handle {
-        Handle::Memory { bytes, .. } => bytes.to_vec(),
-        Handle::Path { path, .. } => read(path).unwrap(),
-    };
-
-    fonts
-        .font_data
-        .insert(FONT_SYSTEM_SANS_SERIF.to_owned(), FontData::from_owned(buf));
-
-    fonts.families.insert(
-        FontFamily::Proportional,
-        vec![FONT_SYSTEM_SANS_SERIF.to_owned()],
-    );
-
-    ctx.set_fonts(fonts);
 }
 
 impl mq::EventHandler for Stage {
@@ -132,63 +105,58 @@ impl mq::EventHandler for Stage {
         // Run the UI code:
         self.egui_mq
             .run(&mut *self.mq_ctx, skiped, |_mq_ctx, egui_ctx| {
-                #[cfg(target_os = "macos")]
+                #[cfg(any(target_os = "macos", target_os = "android"))]
                 if self.first {
                     self.first = false;
                     egui_ctx.request_repaint();
                 }
 
                 egui::TopBottomPanel::bottom("tools").show(egui_ctx, |ui| {
-                    ui.style_mut().spacing.button_padding = egui::vec2(16.0, 16.0);
-                    // ui.style_mut().spacing.slider_width = 200.0;
-                    ui.style_mut().text_styles.insert(
-                        egui::TextStyle::Button,
-                        egui::FontId::new(24.0, egui::epaint::FontFamily::Proportional),
-                    );
-                    ui.style_mut().text_styles.insert(
-                        egui::TextStyle::Body,
-                        egui::FontId::new(24.0, egui::epaint::FontFamily::Proportional),
-                    );
-
-                    let scroll_bar_visibility = if ! cfg!(target_os = "android") {
+                    let scroll_bar_visibility = if !cfg!(target_os = "android") {
                         egui::scroll_area::ScrollBarVisibility::VisibleWhenNeeded
                     } else {
                         egui::scroll_area::ScrollBarVisibility::AlwaysHidden
                     };
+                    if self.show_settings {
+                        let mut value = 0;
+                        ui.add(egui::Slider::new(&mut value, 1..=10));
+                    }
                     egui::ScrollArea::horizontal()
                         .drag_to_scroll(true)
                         .scroll_bar_visibility(scroll_bar_visibility)
                         .show(ui, |ui| {
-                            ui.with_layout(egui::Layout::left_to_right(egui::Align::Max), |ui| {
-                                if ui.button("🔍").clicked() {
-                                    mq::window::set_window_size(100, 100);
+                            ui.with_layout(egui::Layout::left_to_right(egui::Align::Min), |ui| {
+                                if ui
+                                    .add_enabled(false, egui::Button::new("🖼"))
+                                    .on_hover_text("Background")
+                                    .clicked()
+                                {
+                                    self.show_settings = !self.show_settings;
                                 }
-                                if ui.button("🛃").clicked() {
-                                    mq::window::set_window_size(300, 300);
+                                if ui.button("⏰").on_hover_text("Time").clicked() {
+                                    self.show_settings = !self.show_settings;
                                 }
-                                if ui.button("💛").clicked() {
-                                    mq::window::set_window_size(500, 500);
+                                if ui.button("🏃").on_hover_text("Activity").clicked() {
+                                    self.show_settings = !self.show_settings;
                                 }
-                                if ui.button("💚").clicked() {
-                                    mq::window::set_window_size(700, 700);
+                                if ui.button("📆").on_hover_text("Date").clicked() {
+                                    self.show_settings = !self.show_settings;
+                                }
+                                if ui.button("📵").on_hover_text("Status").clicked() {
+                                    self.show_settings = !self.show_settings;
+                                }
+                                if ui.button("🔋").on_hover_text("Battery").clicked() {
+                                    self.show_settings = !self.show_settings;
+                                }
+                                if ui.button("🎬").on_hover_text("Other").clicked() {
+                                    self.show_settings = !self.show_settings;
                                 }
                             });
                         });
                 });
-
-                egui::CentralPanel::default().show(egui_ctx, |ui| {
-                    ui.style_mut().spacing.button_padding = egui::vec2(16.0, 16.0);
-                    // ui.style_mut().spacing.slider_width = 200.0;
-                    ui.style_mut().text_styles.insert(
-                        egui::TextStyle::Button,
-                        egui::FontId::new(24.0, egui::epaint::FontFamily::Proportional),
-                    );
-                    ui.style_mut().text_styles.insert(
-                        egui::TextStyle::Body,
-                        egui::FontId::new(24.0, egui::epaint::FontFamily::Proportional),
-                    );
-                    self.content.content(ui);
-                });
+                // egui::CentralPanel::default().show(egui_ctx, |ui| {
+                //     self.content.content(ui);
+                // });
             });
         self.egui_mq.egui_ctx().has_requested_repaint()
     }
@@ -238,6 +206,50 @@ impl mq::EventHandler for Stage {
     fn resize_event(&mut self, _width: f32, _height: f32) {
         self.egui_mq.egui_ctx().request_repaint();
     }
+}
+
+#[cfg(target_os = "macos")]
+use std::fs::read;
+
+#[cfg(target_os = "macos")]
+use egui::epaint::FontFamily;
+use egui::Button;
+#[cfg(target_os = "macos")]
+use egui::{FontData, FontDefinitions};
+#[cfg(target_os = "macos")]
+use font_kit::{
+    family_name::FamilyName, handle::Handle, properties::Properties, source::SystemSource,
+};
+
+#[cfg(target_os = "macos")]
+const FONT_SYSTEM_SANS_SERIF: &'static str = "System Sans Serif";
+
+#[cfg(target_os = "macos")]
+fn load_system_font(ctx: &egui::Context) {
+    let mut fonts = FontDefinitions::default();
+
+    let handle = SystemSource::new()
+        .select_best_match(
+            &[FamilyName::Title("Helvetica".into()), FamilyName::SansSerif],
+            &Properties::new(),
+        )
+        .unwrap();
+
+    let buf: Vec<u8> = match handle {
+        Handle::Memory { bytes, .. } => bytes.to_vec(),
+        Handle::Path { path, .. } => read(path).unwrap(),
+    };
+
+    fonts
+        .font_data
+        .insert(FONT_SYSTEM_SANS_SERIF.to_owned(), FontData::from_owned(buf));
+
+    fonts.families.insert(
+        FontFamily::Proportional,
+        vec![FONT_SYSTEM_SANS_SERIF.to_owned()],
+    );
+
+    ctx.set_fonts(fonts);
 }
 
 fn main() {
