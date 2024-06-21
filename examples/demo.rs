@@ -113,6 +113,10 @@ impl mq::EventHandler for Stage {
         // Draw things in front of egui here
 
         self.mq_ctx.commit_frame();
+
+        if miniquad::window::blocking_event_loop() && self.egui_mq.egui_ctx.has_requested_repaint() {
+            miniquad::window::schedule_update();
+        }
     }
 
     fn mouse_motion_event(&mut self, x: f32, y: f32) {
