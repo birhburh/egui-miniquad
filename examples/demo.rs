@@ -14,9 +14,6 @@ impl Stage {
     fn new() -> Self {
         let mut mq_ctx = mq::window::new_rendering_backend();
 
-        if miniquad::window::blocking_event_loop() {
-            miniquad::window::schedule_update();
-        }
         Self {
             egui_mq: egui_mq::EguiMq::new(&mut *mq_ctx),
             show_egui_demo_windows: true,
@@ -122,8 +119,6 @@ impl mq::EventHandler for Stage {
     fn mouse_motion_event(&mut self, x: f32, y: f32) {
         self.egui_mq.mouse_motion_event(x, y);
 
-        println!("mouse_motion_event");
-
         if miniquad::window::blocking_event_loop() {
             miniquad::window::schedule_update();
         }
@@ -131,8 +126,6 @@ impl mq::EventHandler for Stage {
 
     fn mouse_wheel_event(&mut self, dx: f32, dy: f32) {
         self.egui_mq.mouse_wheel_event(dx, dy);
-
-        println!("mouse_wheel_event");
 
         if miniquad::window::blocking_event_loop() {
             miniquad::window::schedule_update();
@@ -142,8 +135,6 @@ impl mq::EventHandler for Stage {
     fn mouse_button_down_event(&mut self, mb: mq::MouseButton, x: f32, y: f32) {
         self.egui_mq.mouse_button_down_event(mb, x, y);
 
-        println!("mouse_button_down_event");
-
         if miniquad::window::blocking_event_loop() {
             miniquad::window::schedule_update();
         }
@@ -151,8 +142,6 @@ impl mq::EventHandler for Stage {
 
     fn mouse_button_up_event(&mut self, mb: mq::MouseButton, x: f32, y: f32) {
         self.egui_mq.mouse_button_up_event(mb, x, y);
-
-        println!("mouse_button_up_event");
 
         if miniquad::window::blocking_event_loop() {
             miniquad::window::schedule_update();
@@ -162,8 +151,6 @@ impl mq::EventHandler for Stage {
     fn char_event(&mut self, character: char, _keymods: mq::KeyMods, _repeat: bool) {
         self.egui_mq.char_event(character);
 
-        println!("char_event");
-
         if miniquad::window::blocking_event_loop() {
             miniquad::window::schedule_update();
         }
@@ -172,8 +159,6 @@ impl mq::EventHandler for Stage {
     fn key_down_event(&mut self, keycode: mq::KeyCode, keymods: mq::KeyMods, _repeat: bool) {
         self.egui_mq.key_down_event(keycode, keymods);
 
-        println!("key_down_event");
-
         if miniquad::window::blocking_event_loop() {
             miniquad::window::schedule_update();
         }
@@ -181,8 +166,6 @@ impl mq::EventHandler for Stage {
 
     fn key_up_event(&mut self, keycode: mq::KeyCode, keymods: mq::KeyMods) {
         self.egui_mq.key_up_event(keycode, keymods);
-
-        println!("key_up_event");
 
         if miniquad::window::blocking_event_loop() {
             miniquad::window::schedule_update();
