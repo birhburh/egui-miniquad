@@ -111,7 +111,7 @@ impl mq::EventHandler for Stage {
 
         self.mq_ctx.commit_frame();
 
-        if miniquad::window::blocking_event_loop() && self.egui_mq.egui_ctx.has_requested_repaint() {
+        if miniquad::window::blocking_event_loop() && self.egui_mq.egui_ctx().has_requested_repaint() {
             miniquad::window::schedule_update();
         }
     }
